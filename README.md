@@ -2,7 +2,7 @@
 
 ## Project Summary
 
-In this project you will build and explain a small music recommender system.
+<!-- In this project you will build and explain a small music recommender system.
 
 Your goal is to:
 
@@ -11,8 +11,12 @@ Your goal is to:
 - Evaluate what your system gets right and wrong
 - Reflect on how this mirrors real world AI recommenders
 
-Replace this paragraph with your own summary of what your version does.
+Replace this paragraph with your own summary of what your version does. -->
+Real world music streaming platforms work to recommend music to people by using a combination of collaborative and content based filtering in a function that combines the different features available and using different weights to calculate a score and the distance of a particular songs score relative to the users preferences and rank them- recommending the top scoring songs. 
 
+I want to make a recommender that can introduce K-pop to people who do not listen to it already. There are many different features that are collected in musical data. I want my version of the music recommender system to prioritize vibes when recommending music. This is because K-pop is a vast genre with many different sounds and many different songs can appeal to one group of people and not to another. Thus, my version will use a combination of energy, valence, danceability, and mood to calculate a value for each song. These capture what I call a vibe. 
+
+It will  average out values for each of those 4 aforementioned features using the user's preferred songs to get values of users preference. Then it will calculate the inverse distance of songs in the data base to the user's preference-- the closer to user preference, the higher the score. Then, the system will rank the songs by their score and recommend the top few songs. 
 ---
 
 ## How The System Works

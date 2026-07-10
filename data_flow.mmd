@@ -1,0 +1,44 @@
+flowchart TD
+    subgraph INPUT["📥 Input Data"]
+        SONGS["songs.csv\n─────────────\nid, title, artist, genre, mood\nenergy, tempo_bpm, valence\ndanceability, acousticness\ninstrumentalness, lyrical_depth\npopularity"]
+        USER["User Taste Profile\n─────────────\nfavorite_genre, favorite_mood\nenergy: 0.8 | valence: 0.8\ndanceability: 0.7 | acousticness: 0.55\ninstrumentalness: 0.5\nlyrical_depth: 0.7 | popularity: 0.5\ntempo_bpm: 120"]
+    end
+
+    subgraph PREP["⚙️ Preprocessing"]
+        NORM["Normalize tempo_bpm\nto 0–1 scale\n(tempo - min) / (max - min)"]
+        CLUSTER["Define Similarity Clusters\n─────────────\nGenre: Electronic, Chill,\nPop, Hard, Rhythmic\nMood: Positive, Low-key,\nDark, High-intensity"]
+    end
+
+    subgraph SCORE["📊 Scoring Rule (Per Song)"]
+        direction TB
+        VIBE["Vibe Features (60%)\n─────────────\nenergy: 20%\nvalence: 20%\ndanceability: 20%\n\nscore = 1 - |user - song|"]
+        CAT["Categorical Features (10%)\n─────────────\ngenre: 5%\nmood: 5%\n\nsame value → 1.0\nsame cluster → 0.5\ndiff cluster → 0.0"]
+        SUPPORT["Supporting Features (30%)\n─────────────\nacousticness: 7.5%\ntempo_norm: 7.5%\ninstrumentalness: 5%\nlyrical_depth: 5%\npopularity: 5%\n\nscore = 1 - |user - song|"]
+        COMBINE["Weighted Sum\n─────────────\ntotal = Σ (weight × score)\nper feature"]
+    end
+
+    subgraph RANK["🏆 Ranking Rule"]
+        SORT["Sort All Songs\nby Total Score\n(descending)"]
+        TOP5["Select Top 5\nRecommendations"]
+    end
+
+    OUTPUT["🎵 Final Output\n─────────────\nRanked list of 5 songs\nwith scores"]
+
+    SONGS --> NORM
+    SONGS --> CLUSTER
+    USER --> SCORE
+    NORM --> VIBE
+    NORM --> SUPPORT
+    CLUSTER --> CAT
+    VIBE --> COMBINE
+    CAT --> COMBINE
+    SUPPORT --> COMBINE
+    COMBINE --> SORT
+    SORT --> TOP5
+    TOP5 --> OUTPUT
+
+    style INPUT fill:#1e293b,stroke:#60a5fa,color:#e2e8f0
+    style PREP fill:#1e293b,stroke:#a78bfa,color:#e2e8f0
+    style SCORE fill:#1e293b,stroke:#f59e0b,color:#e2e8f0
+    style RANK fill:#1e293b,stroke:#34d399,color:#e2e8f0
+    style OUTPUT fill:#065f46,stroke:#34d399,color:#e2e8f0

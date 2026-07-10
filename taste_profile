@@ -1,0 +1,12 @@
+user_profile = {
+    "favorite_genre": "pop",
+    "favorite_mood": "happy",
+    "energy": 0.8,
+    "tempo_bpm": 120,
+    "valence": 0.8,
+    "danceability": 0.7,
+    "acousticness": 0.55,
+    "instrumentalness": 0.5,
+    "lyrical_depth": 0.7,
+    "popularity": 0.5
+}
