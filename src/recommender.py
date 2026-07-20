@@ -5,7 +5,7 @@ from dataclasses import dataclass
 GENRE_CLUSTERS = {
     "synthwave": "electronic", "EDM": "electronic", "electronic": "electronic", "ambient": "electronic",
     "lofi": "chill", "jazz": "chill", "acoustic": "chill", "classical": "chill",
-    "pop": "pop", "indie pop": "pop", "funk": "pop", "R&B": "pop",
+    "pop": "pop", "indie pop": "pop", "funk": "pop", "R&B": "pop", "k-pop": "pop",
     "rock": "hard", "metal": "hard", "punk": "hard",
     "hip-hop": "rhythmic", "reggae": "rhythmic", "Latin": "rhythmic",
 }
@@ -193,11 +193,44 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
     return round(total_score, 4), reasons
 
 
+ARTIST_PENALTY = 0.15
+GENRE_PENALTY = 0.10
+
+
 def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, str]]:
-    """Rank all songs by score and return the top-k as (song, score, explanation) tuples."""
-    ranked = sorted(
+    """Rank songs with diversity penalties for repeated artists/genres in the top-k."""
+    scored = sorted(
         ((song, *score_song(user_prefs, song)) for song in songs),
         key=lambda item: item[1],
         reverse=True,
     )
-    return [(song, score, "; ".join(reasons)) for song, score, reasons in ranked[:k]]
+
+    selected = []
+    seen_artists = {}
+    seen_genres = {}
+
+    for song, raw_score, reasons in scored:
+        if len(selected) >= k:
+            break
+
+        penalty = 0.0
+        penalty_reasons = []
+        artist = song.get("artist", "")
+        genre = song.get("genre", "")
+
+        if artist in seen_artists:
+            penalty += ARTIST_PENALTY * seen_artists[artist]
+            penalty_reasons.append(f"repeat artist x{seen_artists[artist]} (-{ARTIST_PENALTY * seen_artists[artist]:.2f})")
+
+        if genre in seen_genres:
+            penalty += GENRE_PENALTY * seen_genres[genre]
+            penalty_reasons.append(f"repeat genre x{seen_genres[genre]} (-{GENRE_PENALTY * seen_genres[genre]:.2f})")
+
+        final_score = round(max(0.0, raw_score - penalty), 4)
+        all_reasons = list(reasons) + penalty_reasons
+        selected.append((song, final_score, "; ".join(all_reasons)))
+
+        seen_artists[artist] = seen_artists.get(artist, 0) + 1
+        seen_genres[genre] = seen_genres.get(genre, 0) + 1
+
+    return selected
