@@ -20,7 +20,6 @@ It will  average out values for each of those 4 aforementioned features using th
 ---
 
 ## How The System Works
-
 Explain your design in plain language.
 
 Some prompts to answer:
@@ -34,6 +33,17 @@ Some prompts to answer:
 You can include a simple diagram or bullet list if helpful.
 
 ---
+
+Each song in the system is described by categorical attributes (genre, mood) and numeric attributes on a 0–1 scale (energy, valence, danceability, acousticness, instrumentalness, lyrical_depth, popularity). Tempo is stored in BPM and normalized to 0–1 before scoring using min-max scaling.
+
+The UserProfile stores a target value for every feature the recommender scores against: a favorite genre, a favorite mood, and numeric targets for each feature (e.g., energy: 0.8, valence: 0.8, danceability: 0.7). These values can be set directly or derived by averaging the features across a set of songs the user already likes.
+
+The recommender uses vibe-based content filtering whch is the idea that if a user enjoys how certain songs feel, they will enjoy other songs that feel similar. First, it normalizes tempo and defines genre/mood similarity clusters so that related categories (e.g., lofi and jazz) receive partial credit rather than a binary match/no-match. Then it scores each song using weighted inverse distance (`1 - |user - song|` for numeric features; cluster-based similarity for categorical features). The vibe features (energy, valence, danceability) carry 60% of the total weight, categorical features (genre, mood) carry 10%, and supporting features (acousticness, tempo, instrumentalness, lyrical_depth, popularity) carry 30%. Finally, it ranks all songs by their total weighted score and recommends the top 5.
+
+Genre similarity clusters: Electronic/Synth (synthwave, EDM, electronic, ambient), Chill/Acoustic (lofi, jazz, acoustic, classical), Pop/Upbeat (pop, indie pop, funk, R&B), Hard/Intense (rock, metal, punk), Rhythmic/Groovy (hip-hop, reggae, Latin). Mood similarity clusters: Positive (happy, energetic, romantic), Low-key (chill, relaxed, focused, dreamy), Dark (moody, melancholic, aggressive, nostalgic), High-intensity (intense, energetic).
+
+Potential Biases: The vibe-heavy weighting (60%) may flatten genre diversity — two songs from completely different genres could score nearly identically if their energy/valence/danceability match. The user profile values cluster between 0.5–0.8, so songs at the extremes will always be penalized even if the user would enjoy them occasionally. The cluster definitions are subjective — which genres count as "similar" is a judgment call that reflects one perspective. Finally, the small catalog (~18 songs) amplifies any bias since a single scoring quirk can shift the entire top-5 list.
+
 
 ## Getting Started
 
@@ -75,12 +85,32 @@ You can add more tests in `tests/test_recommender.py`.
 Paste a sample of your recommender's output here as a text block so a reader can see what it produces:
 
 ```
-# e.g.:
-# User profile: genre=indie, mood=chill, energy=low
-# Recommendations:
-#   1. ...
-#   2. ...
-#   3. ...
+Loaded songs: 10
+
+============================================================
+  Top 5 Recommendations for profile:
+  genre=pop, mood=happy, energy=0.8
+============================================================
+
+  #1  Sunrise City by Neon Echo
+       Score: 0.99
+       Why:   energy similarity 98% (+0.65); genre match (+0.17); mood match (+0.17)
+
+  #2  Rooftop Lights by Indigo Parade
+       Score: 0.89
+       Why:   energy similarity 96% (+0.64); similar genre (+0.08); mood match (+0.17)
+
+  #3  Gym Hero by Max Pulse
+       Score: 0.75
+       Why:   energy similarity 87% (+0.58); genre match (+0.17)
+
+  #4  Night Drive Loop by Neon Echo
+       Score: 0.63
+       Why:   energy similarity 95% (+0.63)
+
+  #5  Storm Runner by Voltline
+       Score: 0.59
+       Why:   energy similarity 89% (+0.59)
 ```
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or demo video link here -->
